@@ -19,6 +19,8 @@ func main() {
 
 	util.ConnectDB()
 
+	go controller.ScheduleAuto()
+
 	router := gin.Default()
 	router.GET("/airlines", controller.GetAirlines)
 	router.POST("/airline/create", controller.AddAirline)
@@ -27,6 +29,7 @@ func main() {
 	router.POST("/route/create", controller.AddRoute)
 
 	router.GET("/schedule/date", controller.GetScheduleByDate)
+	router.GET("/schedule/auto", controller.GetSchedules)
 	router.POST("/schedule/create", controller.AddSchedule)
 	router.POST("/schedule/delay", controller.DelaySchedule)
 	router.POST("/schedule/cancel", controller.CancelSchedule)

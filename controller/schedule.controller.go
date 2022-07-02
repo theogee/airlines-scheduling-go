@@ -3,12 +3,23 @@ package controller
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"example.com/final-exam/dao"
 	"example.com/final-exam/model"
 	v "example.com/final-exam/validator"
 	"github.com/gin-gonic/gin"
 )
+
+func GetSchedules(c *gin.Context) {
+	data, err := dao.GetSchedules()
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"success": false, "msg": err})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, gin.H{"success": true, "data": data})
+}
 
 func GetScheduleByDate(c *gin.Context) {
 	date := c.Query("d")
@@ -97,4 +108,11 @@ func CancelSchedule(c *gin.Context) {
 	}
 
 	c.IndentedJSON(http.StatusCreated, gin.H{"success": true, "msg": fmt.Sprintf("Schedule id: %v has been canceled", cancel.ScheduleID)})
+}
+
+func ScheduleAuto() {
+	for {
+		dao.ScheduleAuto()
+		time.Sleep(time.Second * 60)
+	}
 }

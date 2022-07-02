@@ -5,6 +5,29 @@ import (
 	"example.com/final-exam/util"
 )
 
+func GetSchedules() ([]model.Schedule, error) {
+	var schedules []model.Schedule
+
+	rows, err := util.DB.Query("SELECT * FROM schedule")
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var schedule model.Schedule
+		if err := rows.Scan(&schedule.ID, &schedule.RouteID, &schedule.Date, &schedule.TimeOfDeparture, &schedule.Duration, &schedule.Status); err != nil {
+			return nil, err
+		}
+		schedules = append(schedules, schedule)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return schedules, nil
+}
+
 func GetScheduleByDate(date string) ([]model.Schedule, error) {
 	var schedules []model.Schedule
 
@@ -68,4 +91,10 @@ func CancelSchedule(cancel model.Cancel) (int64, error) {
 	}
 
 	return rowsAffected, nil
+}
+
+func ScheduleAuto() {
+	util.DB.Exec("UPDATE schedule SET status = 'boarding' WHERE status != 'canceled' AND SUBTIME(time_of_departure,'00:15:00') <= CURRENT_TIME")
+	util.DB.Exec("UPDATE schedule SET status = 'en-route' WHERE status != 'canceled' AND time_of_departure <= CURRENT_TIME AND CURRENT_TIME < ADDTIME(time_of_departure, duration)")
+	util.DB.Exec("UPDATE schedule SET status = 'landed' WHERE status != 'canceled' AND CURRENT_TIME >= ADDTIME(time_of_departure, duration)")
 }
